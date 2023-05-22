@@ -2,12 +2,13 @@ import data.Vec2;
 import data.Vec3;
 import parser.JPSLProgram;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+
 
 public class Main {
     public static void main(String[] args) {
-        LinkedHashMap<String, Vec2> args2 = new LinkedHashMap<>();
-        LinkedHashMap<String, Vec3> args3 = new LinkedHashMap<>();
+        HashMap<String, Vec2> args2 = new HashMap<>();
+        HashMap<String, Vec3> args3 = new HashMap<>();
 
         boolean display = false;
 

@@ -23,20 +23,20 @@ public class JPSLProgram {
     private String outputVector;
     private String outFile;
 
-    private LinkedHashMap<String, Texture> textures;
-    private LinkedHashMap<String, Vec3> vectors3;
-    private LinkedHashMap<String, Vec2> vectors2;
+    private HashMap<String, Texture> textures;
+    private HashMap<String, Vec3> vectors3;
+    private HashMap<String, Vec2> vectors2;
 
-    private LinkedHashMap<String, Vec3> args3;
-    private LinkedHashMap<String, Vec2> args2;
+    private HashMap<String, Vec3> args3;
+    private HashMap<String, Vec2> args2;
 
     private boolean display;
 
-    public JPSLProgram(String filename, LinkedHashMap<String, Vec2> args2, LinkedHashMap<String, Vec3> args3, boolean display, String out, int THREAD_COUNT) {
-        textures = new LinkedHashMap<>();
+    public JPSLProgram(String filename, HashMap<String, Vec2> args2, HashMap<String, Vec3> args3, boolean display, String out, int THREAD_COUNT) {
+        textures = new HashMap<>();
 
-        vectors3 = new LinkedHashMap<>();
-        vectors2 = new LinkedHashMap<>();
+        vectors3 = new HashMap<>();
+        vectors2 = new HashMap<>();
 
         file = new File(filename);
 
@@ -56,8 +56,8 @@ public class JPSLProgram {
         this.THREAD_COUNT = THREAD_COUNT;
     }
 
-    public List<List<String>> parse() {
-        List<List<String>> parsed = new ArrayList<>();
+    public List<List<Object>> parse() {
+        List<List<Object>> parsed = new ArrayList<>();
 
         vectors2.put("uv", new Vec2(0, 0));
 
@@ -108,7 +108,7 @@ public class JPSLProgram {
                 break;
             }
 
-            List<String> args = new ArrayList<>();
+            List<Object> args = new ArrayList<>();
 
             switch (content[0]) {
                 case "vec3": {
@@ -129,9 +129,9 @@ public class JPSLProgram {
 
                         args.add("vec3");
                         args.add(content[1]);
-                        args.add(inside[0]);
-                        args.add(inside[1]);
-                        args.add(inside[2]);
+                        args.add(Double.parseDouble(inside[0]));
+                        args.add(Double.parseDouble(inside[1]));
+                        args.add(Double.parseDouble(inside[2]));
 
                         parsed.add(args);
 
@@ -147,8 +147,8 @@ public class JPSLProgram {
 
                         args.add("vec2");
                         args.add(content[1]);
-                        args.add(inside[0]);
-                        args.add(inside[1]);
+                        args.add(Double.parseDouble(inside[0]));
+                        args.add(Double.parseDouble(inside[1]));
 
                         parsed.add(args);
 
@@ -176,7 +176,7 @@ public class JPSLProgram {
     }
 
     public void run() {
-        List<List<String>> parsed = parse();
+        List<List<Object>> parsed = parse();
 
         if (display) {
             ImgDisplay display = new ImgDisplay(mainTexture.content, 1600, 900);
@@ -202,82 +202,64 @@ public class JPSLProgram {
                     vectors3.put(entry.getKey(), entry.getValue());
                 }
 
-                for (List<String> strings : parsed) {
+                for (List<Object> strings : parsed) {
                     if (strings.get(0).equals("sample")) {
-                        Vec3 value = textures.get(strings.get(2)).getRgb(vectors2.get(strings.get(3)));
+                        Vec3 value = textures.get((String) strings.get(2)).getRgb(vectors2.get((String) strings.get(3)));
                         value = VecUtils.rgbToCol(value);
 
-                        vectors3.put(strings.get(1), value);
+                        vectors3.put((String) strings.get(1), value);
                     } else if (strings.get(0).equals("vec3")) {
                         Vec3 result = new Vec3(
-                                Double.parseDouble(strings.get(2)),
-                                Double.parseDouble(strings.get(3)),
-                                Double.parseDouble(strings.get(4))
+                                (Double) strings.get(2),
+                                (Double) strings.get(3),
+                                (Double) strings.get(4)
                         );
 
-                        vectors3.put(strings.get(1), result);
+                        vectors3.put((String) strings.get(1), result);
                     }
 
                     if (strings.get(0).equals("vec2")) {
                         Vec2 result = new Vec2(
-                                Double.parseDouble(strings.get(2)),
-                                Double.parseDouble(strings.get(3))
+                                (Double) strings.get(2),
+                                (Double) strings.get(3)
                         );
 
-                        vectors2.put(strings.get(1), result);
+                        vectors2.put((String) strings.get(1), result);
                     }
 
 
                     if (strings.get(0).equals("var") && vectors3.containsKey(strings.get(1))) {
-                        Vec3 vecA = vectors3.get(strings.get(2));
-                        Vec3 vecB = vectors3.get(strings.get(4));
+                        Vec3 vecA = vectors3.get((String) strings.get(2));
+                        Vec3 vecB = vectors3.get((String) strings.get(4));
 
                         Vec3 res = new Vec3();
 
-                        switch (strings.get(3)) {
-                            case "+":
-                                res = vecA.add(vecB);
-
-                                break;
-
-                            case "-":
-                                res = vecA.sub(vecB);
-
-                                break;
-
-                            case "*":
-                                res = vecA.mul(vecB);
-
-                                break;
+                        if ("+".equals(strings.get(3))) {
+                            res = vecA.add(vecB);
+                        } else if ("-".equals(strings.get(3))) {
+                            res = vecA.sub(vecB);
+                        } else if ("*".equals(strings.get(3))) {
+                            res = vecA.mul(vecB);
                         }
 
-                        vectors3.put(strings.get(1), res);
+                        vectors3.put((String) strings.get(1), res);
                     }
 
                     if (strings.get(0).equals("var") && vectors2.containsKey(strings.get(1))) {
-                        Vec2 vecA = vectors2.get(strings.get(2));
-                        Vec2 vecB = vectors2.get(strings.get(4));
+                        Vec2 vecA = vectors2.get((String) strings.get(2));
+                        Vec2 vecB = vectors2.get((String) strings.get(4));
 
                         Vec2 res = new Vec2();
 
-                        switch (strings.get(3)) {
-                            case "+":
-                                res = vecA.add(vecB);
-
-                                break;
-
-                            case "-":
-                                res = vecA.sub(vecB);
-
-                                break;
-
-                            case "*":
-                                res = vecA.mul(vecB);
-
-                                break;
+                        if ("+".equals(strings.get(3))) {
+                            res = vecA.add(vecB);
+                        } else if ("-".equals(strings.get(3))) {
+                            res = vecA.sub(vecB);
+                        } else if ("*".equals(strings.get(3))) {
+                            res = vecA.mul(vecB);
                         }
 
-                        vectors2.put(strings.get(1), res);
+                        vectors2.put((String) strings.get(1), res);
                     }
                 }
 
@@ -290,7 +272,7 @@ public class JPSLProgram {
     }
 
     public void runThreaded() {
-        List<List<String>> parsed = parse();
+        List<List<Object>> parsed = parse();
 
         if(display) {
             ImgDisplay display = new ImgDisplay(mainTexture.content, 1600, 900);
