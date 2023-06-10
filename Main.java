@@ -3,6 +3,7 @@ import data.Vec3;
 import parser.JPSLProgram;
 
 import java.util.HashMap;
+import java.util.List;
 
 
 public class Main {
@@ -52,10 +53,10 @@ public class Main {
             }
         }
 
-        args2.put("factor", new Vec2(.5, .5));
-
         JPSLProgram parser = new JPSLProgram(path, args2, args3, display, out, threadCount);
 
-        parser.runThreaded();
+        List<List<Object>> parsed = parser.parse();
+
+        parser.runThreaded(parsed);
     }
 }

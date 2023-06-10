@@ -10,7 +10,9 @@ public class Vec3 {
     }
 
     public Vec3() {
-
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
     }
 
     public Vec3 add(Vec3 vec) {
