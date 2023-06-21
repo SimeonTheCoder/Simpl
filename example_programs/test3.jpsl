@@ -1,0 +1,28 @@
+__tex
+{
+    tex texture2 = texture2.jpg _out
+    tex texture = texture.jpg
+}
+
+__main
+{
+    vec2 half = vec2(0.5,0.5)
+    vec3 one = vec3(1,1,1)
+
+    con (uv.x_<_half.x) if else
+    _if
+    {
+        vec3 col = vec3(0,0,0)
+
+        jmp c
+    }
+    _else
+    {
+        vec3 col = vec3(1,1,1)
+
+        jmp c
+    }
+    _c
+
+    out col
+}

@@ -5,7 +5,6 @@ import parser.JPSLProgram;
 import java.util.HashMap;
 import java.util.List;
 
-
 public class Main {
     public static void main(String[] args) {
         HashMap<String, Vec2> args2 = new HashMap<>();

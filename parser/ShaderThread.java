@@ -33,9 +33,12 @@ public class ShaderThread extends Thread {
 
     private HashMap<String, Texture> textures;
 
+    private HashMap<String, Integer> labels;
+
     public String outputVector;
 
-    public ShaderThread(List<Integer> xCoords, List<Integer> yCoords, Texture mainTexture, HashMap<String, Texture> textures, List<String> vec3Names, List<String> vec2Names) {
+    public ShaderThread(List<Integer> xCoords, List<Integer> yCoords, Texture mainTexture, HashMap<String, Texture> textures,
+                        List<String> vec3Names, List<String> vec2Names, HashMap<String, Integer> labels) {
         this.xCoords = xCoords;
         this.yCoords = yCoords;
 
@@ -50,6 +53,8 @@ public class ShaderThread extends Thread {
 
         this.vec2Count = this.vec2Names.size();
         this.vec3Count = this.vec3Names.size();
+
+        this.labels = labels;
 
         this.isDone = false;
     }
@@ -78,13 +83,136 @@ public class ShaderThread extends Thread {
                 arg3Index ++;
             }
 
-            for (List<Object> strings : parsed) {
+            for (int j = 0; j < parsed.size(); j++) {
+                List<Object> strings = parsed.get(j);
+
                 if (strings.get(0).equals("sample")) {
                     Vec3 value = textures.get((String) strings.get(2)).getRgb(vectors2[(Integer) strings.get(3)]);
                     value = VecUtils.rgbToCol(value);
 
                     vectors3[(Integer) strings.get(1)] = value;
-                } else if (strings.get(0).equals("vec3")) {
+                }
+
+                if(strings.get(0).equals("jmp")) {
+                    j = labels.get((String) strings.get(1));
+                }
+
+                if(strings.get(0).equals("if")) {
+                    double valA = 0;
+                    double valB = 0;
+
+                    if(strings.get(1).equals("vec2")) {
+                        Vec2 val = vectors2[(Integer) strings.get(6)];
+
+                        switch ((String) strings.get(7)) {
+                            case "x":
+                                valA = val.x;
+
+                                break;
+
+                            case "y":
+                                valA = val.y;
+
+                                break;
+                        }
+                    }else if(strings.get(1).equals("vec3")) {
+                        Vec3 val = vectors3[(Integer) strings.get(6)];
+
+                        switch ((String) strings.get(7)) {
+                            case "x":
+                                valA = val.x;
+
+                                break;
+
+                            case "y":
+                                valA = val.y;
+
+                                break;
+
+                            case "z":
+                                valA = val.z;
+
+                                break;
+                        }
+                    }
+
+                    if(strings.get(2).equals("vec2")) {
+                        Vec2 val = vectors2[(Integer) strings.get(8)];
+
+                        switch ((String) strings.get(9)) {
+                            case "x":
+                                valB = val.x;
+
+                                break;
+
+                            case "y":
+                                valB = val.y;
+
+                                break;
+                        }
+                    }else if(strings.get(2).equals("vec3")) {
+                        Vec3 val = vectors3[(Integer) strings.get(8)];
+
+                        switch ((String) strings.get(9)) {
+                            case "x":
+                                valB = val.x;
+
+                                break;
+
+                            case "y":
+                                valB = val.y;
+
+                                break;
+
+                            case "z":
+                                valB = val.z;
+
+                                break;
+                        }
+                    }
+
+                    boolean result = false;
+
+                    switch ((String) strings.get(5)) {
+                        case ">":
+                            result = valA > valB;
+
+                            break;
+
+                        case "<":
+                            result = valA < valB;
+
+                            break;
+
+                        case "==":
+                            result = valA == valB;
+
+                            break;
+
+                        case ">=":
+                            result = valA >= valB;
+
+                            break;
+
+                        case "<=":
+                            result = valA <= valB;
+
+                            break;
+
+                        case "!=":
+                            result = valA != valB;
+
+                            break;
+                    }
+
+                    if(result) {
+                        j = labels.get((String) strings.get(3));
+                    }else{
+                        j = labels.get((String) strings.get(4));
+                    }
+                }
+
+                if (strings.get(0).equals("vec3")) {
                     Vec3 result = new Vec3(
                             (Double) strings.get(2),
                             (Double) strings.get(3),
@@ -116,6 +244,8 @@ public class ShaderThread extends Thread {
                         res = vecA.sub(vecB);
                     } else if ("*".equals(strings.get(3))) {
                         res = vecA.mul(vecB);
+                    } else if ("/".equals(strings.get(3))) {
+                        res = vecA.div(vecB);
                     }
 
                     vectors3[(Integer) strings.get(1)] = res;
@@ -133,6 +263,8 @@ public class ShaderThread extends Thread {
                         res = vecA.sub(vecB);
                     } else if ("*".equals(strings.get(3))) {
                         res = vecA.mul(vecB);
+                    } else if ("/".equals(strings.get(3))) {
+                        res = vecA.div(vecB);
                     }
 
                     vectors2[(Integer) strings.get(1)] = res;

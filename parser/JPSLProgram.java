@@ -32,6 +32,7 @@ public class JPSLProgram {
 
     private List<String> vec3Names;
     private List<String> vec2Names;
+    private HashMap<String, Integer> labels;
 
     private boolean display;
 
@@ -40,6 +41,8 @@ public class JPSLProgram {
 
         vectors3 = new HashMap<>();
         vectors2 = new HashMap<>();
+
+        labels = new HashMap<>();
 
         file = new File(filename);
 
@@ -87,6 +90,7 @@ public class JPSLProgram {
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
+            line = line.trim();
 
             if (line.equals("__main")) break;
 
@@ -116,6 +120,7 @@ public class JPSLProgram {
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
+            line = line.trim();
 
             String[] content = line.split(" ");
 
@@ -178,7 +183,56 @@ public class JPSLProgram {
                     break;
                 }
 
+                case "con": {
+                    args.add("if");
+
+                    String varA = String.valueOf(content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[0]);
+                    String varB = String.valueOf(content[1].split("\\(")[1].split("\\)")[0].split("_")[2].split("\\.")[0]);
+
+                    if(!vec2Names.contains(varA) && !vec2Names.contains(varB) &&
+                    !vec3Names.contains(varA) && !vec3Names.contains(varB)) break;
+
+                    if(vec3Names.contains(varA)) args.add("vec3");
+                    if(vec2Names.contains(varA)) args.add("vec2");
+
+                    if(vec3Names.contains(varB)) args.add("vec3");
+                    if(vec2Names.contains(varB)) args.add("vec2");
+
+                    args.add(content[2]);
+                    args.add(content[3]);
+
+                    args.add(content[1].split("\\(")[1].split("\\)")[0].split("_")[1]);
+
+                    args.add(vec3Names.contains(varA) ? vec3Names.indexOf(varA) : vec2Names.indexOf(varA));
+                    args.add(content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[1]);
+
+                    args.add(vec3Names.contains(varB) ? vec3Names.indexOf(varB) : vec2Names.indexOf(varB));
+                    args.add(content[1].split("\\(")[1].split("\\)")[0].split("_")[2].split("\\.")[1]);
+
+                    parsed.add(args);
+
+                    break;
+                }
+
+                case "jmp": {
+                    args.add("jmp");
+                    args.add(content[1]);
+
+                    parsed.add(args);
+
+                    break;
+                }
+
                 default: {
+                    if(content[0].startsWith("_")) {
+                        args.add("lab");
+                        args.add(content[0].substring(1));
+
+                        labels.put(content[0].substring(1), parsed.size());
+
+                        parsed.add(args);
+                    }
+
                     if (vec3Names.contains(content[0])) {
                         args.add("var3");
                         args.add(vec3Names.indexOf(content[0]));
@@ -340,7 +394,7 @@ public class JPSLProgram {
         List<ShaderThread> threads = new ArrayList<>();
 
         for (int i = 0; i < THREAD_COUNT; i++) {
-            ShaderThread thread = new ShaderThread(posX.get(i), posY.get(i), mainTexture, textures, vec3Names, vec2Names);
+            ShaderThread thread = new ShaderThread(posX.get(i), posY.get(i), mainTexture, textures, vec3Names, vec2Names, labels);
             thread.parsed = parsed;
 
             thread.mainTexture = this.mainTexture;

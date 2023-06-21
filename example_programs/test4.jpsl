@@ -1,0 +1,30 @@
+__tex
+{
+    tex texture2 = texture2.jpg _out
+    tex texture = texture.jpg
+}
+
+__main
+{
+    vec2 uvOffset = vec2(-0.01,0)
+
+    vec3 filterA = vec3(1,0,0)
+    vec3 filterB = vec3(0,1,1)
+
+    uv = uv + uvOffset
+    vec3 colA = sample(texture,uv)
+    uv = uv - uvOffset
+
+    vec3 colB = sample(texture,uv)
+
+    colA = colA * filterA
+    colB = colB * filterB
+
+    vec3 col = vec3(0,0,0)
+
+    col = col + colA
+    col = col + colB
+
+    _c
+    out col
+}

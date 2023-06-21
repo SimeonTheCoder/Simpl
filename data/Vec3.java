@@ -45,6 +45,16 @@ public class Vec3 {
         return res;
     }
 
+    public Vec3 div(Vec3 vec) {
+        Vec3 res = new Vec3();
+
+        res.x += this.x / vec.x;
+        res.y += this.y / vec.y;
+        res.z += this.z / vec.z;
+
+        return res;
+    }
+
     public double len() {
         return Math.sqrt(
                 this.x * this.x +

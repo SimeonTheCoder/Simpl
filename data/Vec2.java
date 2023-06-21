@@ -39,6 +39,15 @@ public class Vec2 {
         return res;
     }
 
+    public Vec2 div(Vec2 vec) {
+        Vec2 res = new Vec2();
+
+        res.x = this.x / vec.x;
+        res.y = this.y / vec.y;
+
+        return res;
+    }
+
     public double len() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
