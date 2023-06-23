@@ -51,4 +51,13 @@ public class Vec2 {
     public double len() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
+
+    public Vec2 pow(double power) {
+        Vec2 res = new Vec2();
+
+        res.x += Math.pow(this.x, power);
+        res.y += Math.pow(this.y, power);
+
+        return res;
+    }
 }

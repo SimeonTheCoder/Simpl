@@ -132,6 +132,14 @@ public class JPSLProgram {
             List<Object> args = new ArrayList<>();
 
             switch (content[0]) {
+                case "return": {
+                    args.add("ret");
+
+                    parsed.add(args);
+
+                    break;
+                }
+
                 case "vec3": {
                     vec3Names.add(content[1]);
 

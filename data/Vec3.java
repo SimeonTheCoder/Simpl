@@ -62,4 +62,14 @@ public class Vec3 {
                 this.z * this.z
         );
     }
+
+    public Vec3 pow(double power) {
+        Vec3 res = new Vec3();
+
+        res.x += Math.pow(this.x, power);
+        res.y += Math.pow(this.y, power);
+        res.z += Math.pow(this.z, power);
+
+        return res;
+    }
 }
