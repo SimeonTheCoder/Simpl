@@ -270,102 +270,6 @@ public class JPSLProgram {
         return parsed;
     }
 
-    public void run() {
-        List<List<Object>> parsed = parse();
-
-        if (display) {
-            ImgDisplay display = new ImgDisplay(mainTexture.content, 1600, 900);
-        }
-
-        int MAIN_WIDTH = mainTexture.content.getWidth();
-        int MAIN_HEIGHT = mainTexture.content.getHeight();
-
-        vectors3.clear();
-        vectors2.clear();
-
-        for (int yCoord = 0; yCoord < MAIN_HEIGHT; yCoord++) {
-            for (int xCoord = 0; xCoord < MAIN_WIDTH; xCoord++) {
-                Vec2 uv = mainTexture.getUv(xCoord, yCoord);
-
-                vectors2.put("uv", uv);
-
-                for (Map.Entry<String, Vec2> entry : args2.entrySet()) {
-                    vectors2.put(entry.getKey(), entry.getValue());
-                }
-
-                for (Map.Entry<String, Vec3> entry : args3.entrySet()) {
-                    vectors3.put(entry.getKey(), entry.getValue());
-                }
-
-                for (List<Object> strings : parsed) {
-                    if (strings.get(0).equals("sample")) {
-                        Vec3 value = textures.get((String) strings.get(2)).getRgb(vectors2.get((String) strings.get(3)));
-                        value = VecUtils.rgbToCol(value);
-
-                        vectors3.put((String) strings.get(1), value);
-                    } else if (strings.get(0).equals("vec3")) {
-                        Vec3 result = new Vec3(
-                                (Double) strings.get(2),
-                                (Double) strings.get(3),
-                                (Double) strings.get(4)
-                        );
-
-                        vectors3.put((String) strings.get(1), result);
-                    }
-
-                    if (strings.get(0).equals("vec2")) {
-                        Vec2 result = new Vec2(
-                                (Double) strings.get(2),
-                                (Double) strings.get(3)
-                        );
-
-                        vectors2.put((String) strings.get(1), result);
-                    }
-
-
-                    if (strings.get(0).equals("var") && vectors3.containsKey(strings.get(1))) {
-                        Vec3 vecA = vectors3.get((String) strings.get(2));
-                        Vec3 vecB = vectors3.get((String) strings.get(4));
-
-                        Vec3 res = new Vec3();
-
-                        if ("+".equals(strings.get(3))) {
-                            res = vecA.add(vecB);
-                        } else if ("-".equals(strings.get(3))) {
-                            res = vecA.sub(vecB);
-                        } else if ("*".equals(strings.get(3))) {
-                            res = vecA.mul(vecB);
-                        }
-
-                        vectors3.put((String) strings.get(1), res);
-                    }
-
-                    if (strings.get(0).equals("var") && vectors2.containsKey(strings.get(1))) {
-                        Vec2 vecA = vectors2.get((String) strings.get(2));
-                        Vec2 vecB = vectors2.get((String) strings.get(4));
-
-                        Vec2 res = new Vec2();
-
-                        if ("+".equals(strings.get(3))) {
-                            res = vecA.add(vecB);
-                        } else if ("-".equals(strings.get(3))) {
-                            res = vecA.sub(vecB);
-                        } else if ("*".equals(strings.get(3))) {
-                            res = vecA.mul(vecB);
-                        }
-
-                        vectors2.put((String) strings.get(1), res);
-                    }
-                }
-
-                mainTexture.setRgbTex(vectors3.get(outputVector), new Vec2(xCoord, yCoord));
-
-                vectors3.clear();
-                vectors2.clear();
-            }
-        }
-    }
-
     public void runThreaded(List<List<Object>> parsed) {
         if(display) {
             ImgDisplay display = new ImgDisplay(mainTexture.content, 1600, 900);
@@ -402,7 +306,18 @@ public class JPSLProgram {
         List<ShaderThread> threads = new ArrayList<>();
 
         for (int i = 0; i < THREAD_COUNT; i++) {
-            ShaderThread thread = new ShaderThread(posX.get(i), posY.get(i), mainTexture, textures, vec3Names, vec2Names, labels);
+            int[] coords = new int[posX.get(i).size()];
+
+            for(int j = 0; j < posX.get(i).size(); j ++) {
+                int currX = posX.get(i).get(j);
+                int currY = posY.get(i).get(j);
+
+                int curr = currX + currY * mainTexture.content.getWidth();
+
+                coords[j] = curr;
+            }
+
+            ShaderThread thread = new ShaderThread(coords, mainTexture, textures, vec3Names, vec2Names, labels);
             thread.parsed = parsed;
 
             thread.mainTexture = this.mainTexture;

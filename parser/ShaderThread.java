@@ -8,7 +8,6 @@ import utils.VecUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ShaderThread extends Thread {
     public List<List<Object>> parsed;
@@ -16,18 +15,17 @@ public class ShaderThread extends Thread {
     public HashMap<String, Vec2> args2;
     public HashMap<String, Vec3> args3;
 
-    private List<Integer> xCoords;
-    private List<Integer> yCoords;
+    private int[] coords;
 
     private List<String> vec3Names;
     private List<String> vec2Names;
 
-    private int vec2Count = 0;
-    private int vec3Count = 0;
+    private int vec2Count;
+    private int vec3Count;
 
     public Texture mainTexture;
 
-    public boolean isDone = false;
+    public boolean isDone;
 
     private Vec3[] vectors3;
     private Vec2[] vectors2;
@@ -38,10 +36,9 @@ public class ShaderThread extends Thread {
 
     public String outputVector;
 
-    public ShaderThread(List<Integer> xCoords, List<Integer> yCoords, Texture mainTexture, HashMap<String, Texture> textures,
+    public ShaderThread(int[] coords, Texture mainTexture, HashMap<String, Texture> textures,
                         List<String> vec3Names, List<String> vec2Names, HashMap<String, Integer> labels) {
-        this.xCoords = xCoords;
-        this.yCoords = yCoords;
+        this.coords = coords;
 
         this.mainTexture = mainTexture;
         this.textures = textures;
@@ -62,9 +59,9 @@ public class ShaderThread extends Thread {
 
     @Override
     public void run() {
-        for (int i = 0; i < xCoords.size(); i++) {
-            int xCoord = xCoords.get(i);
-            int yCoord = yCoords.get(i);
+        for (int i = 0; i < coords.length; i++) {
+            int xCoord = coords[i] % mainTexture.content.getWidth();
+            int yCoord = coords[i] / mainTexture.content.getWidth();
 
             Vec2 uv = mainTexture.getUv(xCoord, yCoord);
 
@@ -74,42 +71,48 @@ public class ShaderThread extends Thread {
             for (Map.Entry<String, Vec2> stringVec2Entry : args2.entrySet()) {
                 vectors2[arg2Index] = stringVec2Entry.getValue();
 
-                arg2Index ++;
+                arg2Index++;
             }
 
             int arg3Index = 0;
             for (Map.Entry<String, Vec3> stringVec3Entry : args3.entrySet()) {
                 vectors3[arg3Index] = stringVec3Entry.getValue();
 
-                arg3Index ++;
+                arg3Index++;
             }
 
             int pointer = parsed.size() - 1;
 
             for (int j = 0; j < parsed.size(); j++) {
-                try {
-                    List<Object> strings = parsed.get(j);
+                List<Object> strings = parsed.get(j);
 
-                    if (strings.get(0).equals("sample")) {
+                switch ((String) strings.get(0)) {
+                    case "sample": {
                         Vec3 value = textures.get((String) strings.get(2)).getRgb(vectors2[(Integer) strings.get(3)]);
                         value = VecUtils.rgbToCol(value);
 
                         vectors3[(Integer) strings.get(1)] = value;
+
+                        break;
                     }
 
-                    if (strings.get(0).equals("jmp")) {
+                    case "jmp": {
                         pointer = j;
 
                         j = labels.get((String) strings.get(1));
+
+                        break;
                     }
 
-                    if (strings.get(0).equals("ret")) {
+                    case "ret": {
                         j = pointer;
 
                         pointer = parsed.size() - 1;
+
+                        break;
                     }
 
-                    if (strings.get(0).equals("if")) {
+                    case "if": {
                         double valA = 0;
                         double valB = 0;
 
@@ -222,9 +225,11 @@ public class ShaderThread extends Thread {
                         } else {
                             j = labels.get((String) strings.get(4));
                         }
+
+                        break;
                     }
 
-                    if (strings.get(0).equals("vec3")) {
+                    case "vec3": {
                         Vec3 result = new Vec3(
                                 (Double) strings.get(2),
                                 (Double) strings.get(3),
@@ -232,85 +237,78 @@ public class ShaderThread extends Thread {
                         );
 
                         vectors3[(Integer) strings.get(1)] = result;
+
+                        break;
                     }
 
-                    if (strings.get(0).equals("vec2")) {
+                    case "vec2": {
                         Vec2 result = new Vec2(
                                 (Double) strings.get(2),
                                 (Double) strings.get(3)
                         );
 
                         vectors2[(Integer) strings.get(1)] = result;
+
+                        break;
                     }
 
+                    default: {
+                        if (strings.get(0).equals("var3") && ((Integer) strings.get(1)) < vec3Count) {
+                            Vec3 vecA = vectors3[(Integer) strings.get(2)];
+                            Vec3 vecB = vectors3[(Integer) strings.get(4)];
 
-                    if (strings.get(0).equals("var3") && ((Integer) strings.get(1)) < vec3Count) {
-                        Vec3 vecA = vectors3[(Integer) strings.get(2)];
-                        Vec3 vecB = vectors3[(Integer) strings.get(4)];
+                            Vec3 res = new Vec3();
 
-                        Vec3 res = new Vec3();
+                            switch ((String) strings.get(3)) {
+                                case "+":
+                                    res = vecA.add(vecB);
+                                    break;
 
-                        if ("+".equals(strings.get(3))) {
-                            res = vecA.add(vecB);
-                        } else if ("-".equals(strings.get(3))) {
-                            res = vecA.sub(vecB);
-                        } else if ("*".equals(strings.get(3))) {
-                            res = vecA.mul(vecB);
-                        } else if ("/".equals(strings.get(3))) {
-                            res = vecA.div(vecB);
-                        } else if ("^".equals(strings.get(3))) {
-                            res = vecA.pow(vecB.x);
+                                case "-":
+                                    res = vecA.sub(vecB);
+                                    break;
+
+                                case "*":
+                                    res = vecA.mul(vecB);
+                                    break;
+
+                                case "/":
+                                    res = vecA.div(vecB);
+                                    break;
+                            }
+
+                            vectors3[(Integer) strings.get(1)] = res;
                         }
 
-                        vectors3[(Integer) strings.get(1)] = res;
-                    }
+                        if (strings.get(0).equals("var2") && ((Integer) strings.get(1)) < vec2Count) {
+                            Vec2 vecA = vectors2[(Integer) strings.get(2)];
+                            Vec2 vecB = vectors2[(Integer) strings.get(4)];
 
-                    if (strings.get(0).equals("var2") && ((Integer) strings.get(1)) < vec2Count) {
-                        Vec2 vecA = vectors2[(Integer) strings.get(2)];
-                        Vec2 vecB = vectors2[(Integer) strings.get(4)];
+                            Vec2 res = new Vec2();
 
-                        Vec2 res = new Vec2();
+                            switch ((String) strings.get(3)) {
+                                case "+":
+                                    res = vecA.add(vecB);
+                                    break;
 
-                        if ("+".equals(strings.get(3))) {
-                            res = vecA.add(vecB);
-                        } else if ("-".equals(strings.get(3))) {
-                            res = vecA.sub(vecB);
-                        } else if ("*".equals(strings.get(3))) {
-                            res = vecA.mul(vecB);
-                        } else if ("/".equals(strings.get(3))) {
-                            res = vecA.div(vecB);
-                        } else if ("^".equals(strings.get(3))) {
-                            res = vecA.pow(vecB.x);
+                                case "-":
+                                    res = vecA.sub(vecB);
+                                    break;
+
+                                case "*":
+                                    res = vecA.mul(vecB);
+                                    break;
+
+                                case "/":
+                                    res = vecA.div(vecB);
+                                    break;
+                            }
+
+                            vectors2[(Integer) strings.get(1)] = res;
                         }
 
-                        vectors2[(Integer) strings.get(1)] = res;
+                        break;
                     }
-                }catch (Exception exception) {
-                    System.out.println("Error on line: " + j);
-
-                    System.out.println("vec3 names: ");
-                    for (String vec3Name : vec3Names) {
-                        System.out.println(vec3Name);
-                    }
-
-                    System.out.println("vec2 names: ");
-                    for (String vec2Name : vec2Names) {
-                        System.out.println(vec2Name);
-                    }
-
-                    for (Object o : parsed.get(j)) {
-                        System.out.print(o.toString());
-
-                        if (!Objects.equals(o.toString(), "var3")) {
-                            System.out.print(" - ");
-
-                            System.out.print(vectors3[(Integer) o]);
-                        }
-
-                        System.out.print(" ");
-                    }
-
-                    return;
                 }
             }
 
