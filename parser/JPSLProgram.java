@@ -4,7 +4,6 @@ import data.Texture;
 import data.Vec2;
 import data.Vec3;
 import imgdisplay.ImgDisplay;
-import utils.VecUtils;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -23,7 +22,8 @@ public class JPSLProgram {
     private String outputVector;
     private String outFile;
 
-    private HashMap<String, Texture> textures;
+    private List<String> textureNames;
+    private List<Texture> textures;
     private HashMap<String, Vec3> vectors3;
     private HashMap<String, Vec2> vectors2;
 
@@ -32,17 +32,21 @@ public class JPSLProgram {
 
     private List<String> vec3Names;
     private List<String> vec2Names;
-    private HashMap<String, Integer> labels;
+
+    private List<String> labelNames;
+    private List<Integer> labels;
 
     private boolean display;
 
     public JPSLProgram(String filename, HashMap<String, Vec2> args2, HashMap<String, Vec3> args3, boolean display, String out, int THREAD_COUNT) {
-        textures = new HashMap<>();
+        textures = new ArrayList<>();
+        textureNames = new ArrayList<>();
 
         vectors3 = new HashMap<>();
         vectors2 = new HashMap<>();
 
-        labels = new HashMap<>();
+        labels = new ArrayList<>();
+        labelNames = new ArrayList<>();
 
         file = new File(filename);
 
@@ -62,8 +66,8 @@ public class JPSLProgram {
         this.THREAD_COUNT = THREAD_COUNT;
     }
 
-    public List<List<Object>> parse() {
-        List<List<Object>> parsed = new ArrayList<>();
+    public List<List<Integer>> parse() {
+        List<List<Integer>> parsed = new ArrayList<>();
 
         vectors2.put("uv", new Vec2(0, 0));
 
@@ -101,10 +105,13 @@ public class JPSLProgram {
                     try {
                         Texture texture = new Texture(ImageIO.read(new File(content[3])));
 
-                        textures.put(
-                                content[1],
-                                texture
-                        );
+                        if(textureNames.contains(content[1])) {
+                            textures.set(textureNames.indexOf(content[1]), texture);
+                        }else {
+                            textures.add(texture);
+                        }
+
+                        textureNames.add(content[1]);
 
                         if (content.length == 5) {
                             mainTexture = texture;
@@ -129,11 +136,11 @@ public class JPSLProgram {
                 break;
             }
 
-            List<Object> args = new ArrayList<>();
+            List<Integer> args = new ArrayList<>();
 
             switch (content[0]) {
                 case "return": {
-                    args.add("ret");
+                    args.add(0);
 
                     parsed.add(args);
 
@@ -146,10 +153,10 @@ public class JPSLProgram {
                     if (content[3].startsWith("sample")) {
                         String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
 
-                        args.add("sample");
+                        args.add(1);
                         args.add(vec3Names.indexOf(content[1]));
 
-                        args.add(inside[0]);
+                        args.add(textureNames.indexOf(inside[0]));
                         args.add(vec2Names.indexOf(inside[1]));
 
                         parsed.add(args);
@@ -158,11 +165,11 @@ public class JPSLProgram {
                     } else if (content[3].startsWith("vec3")) {
                         String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
 
-                        args.add("vec3");
+                        args.add(2);
                         args.add(vec3Names.indexOf(content[1]));
-                        args.add(Double.parseDouble(inside[0]));
-                        args.add(Double.parseDouble(inside[1]));
-                        args.add(Double.parseDouble(inside[2]));
+                        args.add((int) (Double.parseDouble(inside[0])) * 10000);
+                        args.add((int) (Double.parseDouble(inside[1])) * 10000);
+                        args.add((int) (Double.parseDouble(inside[2])) * 10000);
 
                         parsed.add(args);
 
@@ -178,10 +185,10 @@ public class JPSLProgram {
                     if (content[3].startsWith("vec2")) {
                         String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
 
-                        args.add("vec2");
+                        args.add(3);
                         args.add(vec2Names.indexOf(content[1]));
-                        args.add(Double.parseDouble(inside[0]));
-                        args.add(Double.parseDouble(inside[1]));
+                        args.add((int) (Double.parseDouble(inside[0]) * 10000));
+                        args.add((int) (Double.parseDouble(inside[1]) * 10000));
 
                         parsed.add(args);
 
@@ -192,7 +199,7 @@ public class JPSLProgram {
                 }
 
                 case "con": {
-                    args.add("if");
+                    args.add(4);
 
                     String varA = String.valueOf(content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[0]);
                     String varB = String.valueOf(content[1].split("\\(")[1].split("\\)")[0].split("_")[2].split("\\.")[0]);
@@ -200,22 +207,95 @@ public class JPSLProgram {
                     if(!vec2Names.contains(varA) && !vec2Names.contains(varB) &&
                     !vec3Names.contains(varA) && !vec3Names.contains(varB)) break;
 
-                    if(vec3Names.contains(varA)) args.add("vec3");
-                    if(vec2Names.contains(varA)) args.add("vec2");
+                    if(vec3Names.contains(varA)) args.add(0);
+                    if(vec2Names.contains(varA)) args.add(1);
 
-                    if(vec3Names.contains(varB)) args.add("vec3");
-                    if(vec2Names.contains(varB)) args.add("vec2");
+                    if(vec3Names.contains(varB)) args.add(0);
+                    if(vec2Names.contains(varB)) args.add(1);
 
-                    args.add(content[2]);
-                    args.add(content[3]);
+                    if(!labelNames.contains(content[2])) {
+                        labelNames.add(content[2]);
+                        labels.add(0);
+                    }
 
-                    args.add(content[1].split("\\(")[1].split("\\)")[0].split("_")[1]);
+                    if(!labelNames.contains(content[3])) {
+                        labelNames.add(content[3]);
+                        labels.add(0);
+                    }
+
+                    args.add(labelNames.indexOf(content[2]));
+                    args.add(labelNames.indexOf(content[3]));
+
+                    String sign = content[1].split("\\(")[1].split("\\)")[0].split("_")[1];
+
+                    int signIndex = -1;
+
+                    switch (sign) {
+                        case ">":
+                            signIndex = 0;
+                            break;
+                        case "<":
+                            signIndex = 1;
+                            break;
+                        case "==":
+                            signIndex = 2;
+                            break;
+                        case ">=":
+                            signIndex = 3;
+                            break;
+                        case "<=":
+                            signIndex = 4;
+                            break;
+                        case "!=":
+                            signIndex = 5;
+                            break;
+                    }
+
+                    args.add(signIndex);
 
                     args.add(vec3Names.contains(varA) ? vec3Names.indexOf(varA) : vec2Names.indexOf(varA));
-                    args.add(content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[1]);
+
+                    String charA = content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[1];
+
+                    int argA = -1;
+
+                    switch (charA) {
+                        case "x":
+                            argA = 0;
+                            break;
+
+                        case "y":
+                            argA = 1;
+                            break;
+
+                        case "z":
+                            argA = 2;
+                            break;
+                    }
+
+                    args.add(argA);
 
                     args.add(vec3Names.contains(varB) ? vec3Names.indexOf(varB) : vec2Names.indexOf(varB));
-                    args.add(content[1].split("\\(")[1].split("\\)")[0].split("_")[2].split("\\.")[1]);
+
+                    String charB = content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[1];
+
+                    int argB = -1;
+
+                    switch (charB) {
+                        case "x":
+                            argB = 0;
+                            break;
+
+                        case "y":
+                            argB = 1;
+                            break;
+
+                        case "z":
+                            argB = 2;
+                            break;
+                    }
+
+                    args.add(argB);
 
                     parsed.add(args);
 
@@ -223,8 +303,14 @@ public class JPSLProgram {
                 }
 
                 case "jmp": {
-                    args.add("jmp");
-                    args.add(content[1]);
+                    args.add(5);
+
+                    if(!labelNames.contains(content[1])) {
+                        labelNames.add(content[1]);
+                        labels.add(0);
+                    }
+
+                    args.add(labelNames.indexOf(content[1]));
 
                     parsed.add(args);
 
@@ -233,30 +319,83 @@ public class JPSLProgram {
 
                 default: {
                     if(content[0].startsWith("_")) {
-                        args.add("lab");
-                        args.add(content[0].substring(1));
+                        args.add(6);
 
-                        labels.put(content[0].substring(1), parsed.size());
+                        int labelIndex = 0;
+
+                        if(!labelNames.contains(content[0].substring(1))) {
+                            labelNames.add(content[0].substring(1));
+                            labels.add(parsed.size());
+                        }
+
+                        labels.set(labelNames.indexOf(content[0].substring(1)), parsed.size());
+
+                        args.add(labelIndex);
 
                         parsed.add(args);
                     }
 
                     if (vec3Names.contains(content[0])) {
-                        args.add("var3");
+                        args.add(7);
                         args.add(vec3Names.indexOf(content[0]));
                         args.add(vec3Names.indexOf(content[2]));
-                        args.add(content[3]);
+
+                        String sign = content[3];
+                        int signIndex = -1;
+
+                        switch (sign) {
+                            case "+":
+                                signIndex = 0;
+                                break;
+
+                            case "-":
+                                signIndex = 1;
+                                break;
+
+                            case "*":
+                                signIndex = 2;
+                                break;
+
+                            case "/":
+                                signIndex = 3;
+                                break;
+                        }
+
+                        args.add(signIndex);
+
                         args.add(vec3Names.indexOf(content[4]));
 
                         parsed.add(args);
                     }
 
                     if (vec2Names.contains(content[0])) {
-                        args.add("var2");
+                        args.add(8);
                         args.add(vec2Names.indexOf(content[0]));
-                        args.add(vec2Names.indexOf(content[2]));
-                        args.add(content[3]);
+
+                        String sign = content[3];
+                        int signIndex = -1;
+
+                        switch (sign) {
+                            case "+":
+                                signIndex = 0;
+                                break;
+
+                            case "-":
+                                signIndex = 1;
+                                break;
+
+                            case "*":
+                                signIndex = 2;
+                                break;
+
+                            case "/":
+                                signIndex = 3;
+                                break;
+                        }
+
                         args.add(vec2Names.indexOf(content[4]));
+                        args.add(signIndex);
+                        args.add(vec2Names.indexOf(content[2]));
 
                         parsed.add(args);
                     }
@@ -270,7 +409,7 @@ public class JPSLProgram {
         return parsed;
     }
 
-    public void runThreaded(List<List<Object>> parsed) {
+    public void runThreaded(List<List<Integer>> parsed) {
         if(display) {
             ImgDisplay display = new ImgDisplay(mainTexture.content, 1600, 900);
         }
@@ -305,6 +444,20 @@ public class JPSLProgram {
 
         List<ShaderThread> threads = new ArrayList<>();
 
+        Texture[] texturesArray = new Texture[textureNames.size()];
+
+        for(int j = 0; j < textures.size(); j ++) {
+            texturesArray[j] = textures.get(j);
+        }
+
+        int[] labelPointers = new int[labelNames.size()];
+
+        for(int j = 0; j < labels.size(); j ++) {
+            labelPointers[j] = labels.get(j);
+
+            System.out.println(labelPointers[j]);
+        }
+
         for (int i = 0; i < THREAD_COUNT; i++) {
             int[] coords = new int[posX.get(i).size()];
 
@@ -317,8 +470,19 @@ public class JPSLProgram {
                 coords[j] = curr;
             }
 
-            ShaderThread thread = new ShaderThread(coords, mainTexture, textures, vec3Names, vec2Names, labels);
-            thread.parsed = parsed;
+            ShaderThread thread = new ShaderThread(coords, mainTexture, texturesArray, vec3Names, vec2Names, labelPointers);
+
+            int[][] parsedArr = new int[parsed.size()][10];
+
+            for(int j = 0; j < parsed.size(); j ++) {
+                parsedArr[j] = new int[10];
+
+                for(int k = 0; k < parsed.get(j).size(); k ++) {
+                    parsedArr[j][k] = parsed.get(j).get(k);
+                }
+            }
+
+            thread.parsed = parsedArr;
 
             thread.mainTexture = this.mainTexture;
             thread.outputVector = this.outputVector;

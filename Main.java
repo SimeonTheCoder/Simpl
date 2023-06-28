@@ -15,7 +15,7 @@ public class Main {
         String out = null;
         String path = null;
 
-        int threadCount = 1;
+        int threadCount = 8;
 
         for (String arg : args) {
             if(arg.equals("-d")) display = true;
@@ -54,7 +54,7 @@ public class Main {
 
         JPSLProgram parser = new JPSLProgram(path, args2, args3, display, out, threadCount);
 
-        List<List<Object>> parsed = parser.parse();
+        List<List<Integer>> parsed = parser.parse();
 
         parser.runThreaded(parsed);
     }

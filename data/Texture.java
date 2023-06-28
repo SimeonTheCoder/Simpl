@@ -43,11 +43,7 @@ public class Texture {
         content.setRGB(
                 (int) tex.x,
                 (int) tex.y,
-                new Color(
-                        (int) realColor.x,
-                        (int) realColor.y,
-                        (int) realColor.z
-                ).getRGB()
+                (int) (65536 * realColor.x + 256 * realColor.y + realColor.z)
         );
     }
 
