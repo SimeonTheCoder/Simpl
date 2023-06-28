@@ -10,7 +10,7 @@ __main
 
     vec3 filterA = vec3(1,0,0)
     vec3 filterB = vec3(0,1,1)
-
+    --b
     uv = uv + uvOffset
     vec3 colA = sample(texture,uv)
     uv = uv - uvOffset

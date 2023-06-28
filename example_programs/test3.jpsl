@@ -9,6 +9,7 @@ __main
     vec2 half = vec2(0.5,0.5)
     vec3 one = vec3(1,1,1)
 
+    --b
     con (uv.x_<_half.x) if else
     _if
     {

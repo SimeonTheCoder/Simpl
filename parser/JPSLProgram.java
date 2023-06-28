@@ -317,6 +317,14 @@ public class JPSLProgram {
                     break;
                 }
 
+                case "--b": {
+                    args.add(9);
+
+                    parsed.add(args);
+
+                    break;
+                }
+
                 default: {
                     if(content[0].startsWith("_")) {
                         args.add(6);
@@ -454,8 +462,6 @@ public class JPSLProgram {
 
         for(int j = 0; j < labels.size(); j ++) {
             labelPointers[j] = labels.get(j);
-
-            System.out.println(labelPointers[j]);
         }
 
         for (int i = 0; i < THREAD_COUNT; i++) {
