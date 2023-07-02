@@ -15,7 +15,7 @@ public class Main {
         String out = null;
         String path = null;
 
-        int threadCount = 8;
+        int threadCount = 1;
 
         for (String arg : args) {
             if(arg.equals("-d")) display = true;
@@ -31,9 +31,9 @@ public class Main {
             if(arg.startsWith("-a3")) {
                 String argName = arg.split("\\(")[1].split("\\)")[0].split(",")[0];
 
-                double a = Double.parseDouble(arg.split("\\(")[1].split("\\)")[0].split(",")[1]);
-                double b = Double.parseDouble(arg.split("\\(")[1].split("\\)")[0].split(",")[2]);
-                double c = Double.parseDouble(arg.split("\\(")[1].split("\\)")[0].split(",")[3]);
+                float a = Float.parseFloat(arg.split("\\(")[1].split("\\)")[0].split(",")[1]);
+                float b = Float.parseFloat(arg.split("\\(")[1].split("\\)")[0].split(",")[2]);
+                float c = Float.parseFloat(arg.split("\\(")[1].split("\\)")[0].split(",")[3]);
 
                 args3.put(argName, new Vec3(a,b,c));
             }
@@ -41,20 +41,20 @@ public class Main {
             if(arg.startsWith("-a2")) {
                 String argName = arg.split("\\(")[1].split("\\)")[0].split(",")[0];
 
-                double a = Double.parseDouble(arg.split("\\(")[1].split("\\)")[0].split(",")[1]);
-                double b = Double.parseDouble(arg.split("\\(")[1].split("\\)")[0].split(",")[2]);
+                float a = Float.parseFloat(arg.split("\\(")[1].split("\\)")[0].split(",")[1]);
+                float b = Float.parseFloat(arg.split("\\(")[1].split("\\)")[0].split(",")[2]);
 
                 args2.put(argName, new Vec2(a,b));
             }
 
             if(arg.startsWith("-t")) {
-                threadCount = Integer.parseInt(String.valueOf(arg.charAt(2)));
+                threadCount = Integer.parseInt(arg.substring(2));
             }
         }
 
         JPSLProgram parser = new JPSLProgram(path, args2, args3, display, out, threadCount);
 
-        List<List<Integer>> parsed = parser.parse();
+        List<int[]> parsed = parser.parse();
 
         parser.runThreaded(parsed);
     }

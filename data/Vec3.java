@@ -1,9 +1,11 @@
 package data;
 
 public class Vec3 {
-    public double x, y, z;
+    public float x;
+    public float y;
+    public float z;
 
-    public Vec3(double x, double y, double z) {
+    public Vec3(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -13,63 +15,5 @@ public class Vec3 {
         this.x = 0;
         this.y = 0;
         this.z = 0;
-    }
-
-    public Vec3 add(Vec3 vec) {
-        Vec3 res = new Vec3();
-
-        res.x += this.x + vec.x;
-        res.y += this.y + vec.y;
-        res.z += this.z + vec.z;
-
-        return res;
-    }
-
-    public Vec3 sub(Vec3 vec) {
-        Vec3 res = new Vec3();
-
-        res.x += this.x - vec.x;
-        res.y += this.y - vec.y;
-        res.z += this.z - vec.z;
-
-        return res;
-    }
-
-    public Vec3 mul(Vec3 vec) {
-        Vec3 res = new Vec3();
-
-        res.x += this.x * vec.x;
-        res.y += this.y * vec.y;
-        res.z += this.z * vec.z;
-
-        return res;
-    }
-
-    public Vec3 div(Vec3 vec) {
-        Vec3 res = new Vec3();
-
-        res.x += this.x / vec.x;
-        res.y += this.y / vec.y;
-        res.z += this.z / vec.z;
-
-        return res;
-    }
-
-    public double len() {
-        return Math.sqrt(
-                this.x * this.x +
-                this.y * this.y +
-                this.z * this.z
-        );
-    }
-
-    public Vec3 pow(double power) {
-        Vec3 res = new Vec3();
-
-        res.x += Math.pow(this.x, power);
-        res.y += Math.pow(this.y, power);
-        res.z += Math.pow(this.z, power);
-
-        return res;
     }
 }

@@ -5,23 +5,23 @@ import data.Vec3;
 
 public class VecUtils {
     public static Vec2 texToUV(Vec2 textureCoords, int width, int height) {
-        double uvX = textureCoords.x / (width + 0.0);
-        double uvY = textureCoords.y / (height + 0.0);
+        float uvX = textureCoords.x / (width + 0f);
+        float uvY = textureCoords.y / (height + 0f);
 
         return new Vec2(uvX, uvY);
     }
 
     public static Vec2 uvToTex(Vec2 uv, int width, int height) {
-        double texX = uv.x * (width + .0);
-        double texY = uv.y * (height + .0);
+        float texX = uv.x * (width + .0f);
+        float texY = uv.y * (height + .0f);
 
         return new Vec2(texX, texY);
     }
 
     public static Vec3 colToRGB(Vec3 col) {
-        double r = col.x * 255;
-        double g = col.y * 255;
-        double b = col.z * 255;
+        float r = col.x * 255;
+        float g = col.y * 255;
+        float b = col.z * 255;
 
         int red = Math.max(0, Math.min(255, (int) r));
         int green = Math.max(0, Math.min(255, (int) g));
@@ -35,9 +35,9 @@ public class VecUtils {
         int g = (int) rgb.y;
         int b = (int) rgb.z;
 
-        double red = r / 255.0;
-        double green = g / 255.0;
-        double blue = b / 255.0;
+        float red = r / 255f;
+        float green = g / 255f;
+        float blue = b / 255f;
 
         return new Vec3(red, green, blue);
     }

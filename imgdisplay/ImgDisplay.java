@@ -1,33 +1,14 @@
 package imgdisplay;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 
 public class ImgDisplay extends JPanel {
     private JFrame frame;
-    private Image image;
+    private int[][][] image;
 
-    public ImgDisplay(Image image, int sizeX, int sizeY) {
+    public ImgDisplay(int[][][] image, int sizeX, int sizeY) {
         this.image = image;
-
-        frame = new JFrame("Image display");
-        frame.setSize(sizeX, sizeY);
-
-        frame.add(this);
-
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-    }
-
-    public ImgDisplay(String path, int sizeX, int sizeY) {
-        try {
-            this.image = ImageIO.read(new File(path));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         frame = new JFrame("Image display");
         frame.setSize(sizeX, sizeY);
@@ -42,7 +23,17 @@ public class ImgDisplay extends JPanel {
     public void paint(Graphics g) {
         super.paint(g);
 
-        g.drawImage(image, 0, 0, frame.getWidth(), frame.getHeight(),null);
+        for(int i = 0; i < image.length; i ++) {
+            for(int j = 0; j < image[0].length; j ++) {
+                g.setColor(new Color(
+                        image[i][j][0],
+                        image[i][j][1],
+                        image[i][j][2]
+                ));
+
+                g.fillRect(j, i, 1, 1);
+            }
+        }
 
         repaint();
     }
