@@ -24,15 +24,12 @@ public class ShaderThread extends Thread {
 
     public boolean isDone;
 
-    private Vec3[] vectors3;
-    private Vec2[] vectors2;
+    private float[][] vec3;
+    private float[][] vec2;
 
     private Texture[] textures;
 
     private int[] labels;
-
-    private int width;
-    private int height;
 
     private int pointer;
     private int reached;
@@ -46,8 +43,8 @@ public class ShaderThread extends Thread {
         this.mainTexture = mainTexture;
         this.textures = textures;
 
-        vectors3 = new Vec3[256];
-        vectors2 = new Vec2[256];
+        vec3 = new float[256][3];
+        vec2 = new float[256][2];
 
         this.vec2Count = vec2Count;
         this.vec3Count = vec3Count;
@@ -55,9 +52,6 @@ public class ShaderThread extends Thread {
         this.labels = labels;
 
         this.isDone = false;
-
-        this.width = mainTexture.content[0].length;
-        this.height = mainTexture.content.length;
     }
 
     @Override
@@ -65,18 +59,22 @@ public class ShaderThread extends Thread {
         this.pointer = parsed.length - 1;
         this.reached = 0;
 
-        vectors2[0] = new Vec2(0, 0);
+        vec2[0][0] = 0;
+        vec2[0][1] = 0;
 
         int arg2Index = 1;
         for (Map.Entry<String, Vec2> stringVec2Entry : args2.entrySet()) {
-            vectors2[arg2Index] = stringVec2Entry.getValue();
+            vec2[arg2Index][0] = stringVec2Entry.getValue().x;
+            vec2[arg2Index][1] = stringVec2Entry.getValue().y;
 
             arg2Index++;
         }
 
         int arg3Index = 0;
         for (Map.Entry<String, Vec3> stringVec3Entry : args3.entrySet()) {
-            vectors3[arg3Index] = stringVec3Entry.getValue();
+            vec3[arg3Index][0] = stringVec3Entry.getValue().x;
+            vec3[arg3Index][1] = stringVec3Entry.getValue().y;
+            vec3[arg3Index][2] = stringVec3Entry.getValue().z;
 
             arg3Index++;
         }
@@ -118,30 +116,22 @@ public class ShaderThread extends Thread {
             }
 
             case 2: {
-                Vec3 result = new Vec3(
-                        parsed[j][2] / 10000f,
-                        parsed[j][3] / 10000f,
-                        parsed[j][4] / 10000f
-                );
-
-                vectors3[parsed[j][1]] = result;
+                vec3[parsed[j][1]][0] = parsed[j][2] / 10000f;
+                vec3[parsed[j][1]][1] = parsed[j][3] / 10000f;
+                vec3[parsed[j][1]][2] = parsed[j][4] / 10000f;
 
                 break;
             }
 
             case 3: {
-                Vec2 result = new Vec2(
-                        parsed[j][2] / 10000f,
-                        parsed[j][3] / 10000f
-                );
-
-                vectors2[parsed[j][1]] = result;
+                vec2[parsed[j][1]][0] = parsed[j][2] / 10000f;
+                vec2[parsed[j][1]][1] = parsed[j][3] / 10000f;
 
                 break;
             }
 
             case 7: {
-                if(parsed[j][1] < vec3Count) {
+                if (parsed[j][1] < vec3Count) {
                     arithmetics3(j);
                 }
 
@@ -149,7 +139,7 @@ public class ShaderThread extends Thread {
             }
 
             case 8: {
-                if(parsed[j][1] < vec2Count) {
+                if (parsed[j][1] < vec2Count) {
                     arithmetics2(j);
                 }
 
@@ -184,73 +174,15 @@ public class ShaderThread extends Thread {
         float valB = 0;
 
         if (parsed[j][1] == 1) {
-            Vec2 val = vectors2[parsed[j][6]];
-
-            switch (parsed[j][7]) {
-                case 0:
-                    valA = val.x;
-
-                    break;
-
-                case 1:
-                    valA = val.y;
-
-                    break;
-            }
+            valA = vec2[parsed[j][6]][parsed[j][7]];
         } else if (parsed[j][1] == 0) {
-            Vec3 val = vectors3[parsed[j][6]];
-
-            switch (parsed[j][7]) {
-                case 0:
-                    valA = val.x;
-
-                    break;
-
-                case 1:
-                    valA = val.y;
-
-                    break;
-
-                case 2:
-                    valA = val.z;
-
-                    break;
-            }
+            valA = vec3[parsed[j][6]][parsed[j][7]];
         }
 
         if (parsed[j][2] == 1) {
-            Vec2 val = vectors2[parsed[j][8]];
-
-            switch (parsed[j][9]) {
-                case 0:
-                    valB = val.x;
-
-                    break;
-
-                case 1:
-                    valB = val.y;
-
-                    break;
-            }
+            valB = vec2[parsed[j][8]][parsed[j][9]];
         } else if (parsed[j][2] == 0) {
-            Vec3 val = vectors3[parsed[j][8]];
-
-            switch (parsed[j][9]) {
-                case 0:
-                    valB = val.x;
-
-                    break;
-
-                case 1:
-                    valB = val.y;
-
-                    break;
-
-                case 2:
-                    valB = val.z;
-
-                    break;
-            }
+            valB = vec3[parsed[j][8]][parsed[j][9]];
         }
 
         boolean result = boolOperations(valA, valB, parsed[j][5]);
@@ -265,89 +197,66 @@ public class ShaderThread extends Thread {
     }
 
     private void arithmetics3(int j) {
-        Vec3 vecA = vectors3[parsed[j][2]];
-        Vec3 vecB = vectors3[parsed[j][4]];
-
-        float[] valsA = new float[]{
-                vecA.x, vecA.y, vecA.z
-        };
-
-        float[] valsB = new float[]{
-                vecB.x, vecB.y, vecB.z
-        };
+//        System.out.println(vec2[0][0] + ", " + vec2[0][1]);
 
         switch (parsed[j][3]) {
             case 0:
-                valsA[0] += valsB[0];
-                valsA[1] += valsB[1];
-                valsA[2] += valsB[2];
+                vec3[parsed[j][1]][0] = vec3[parsed[j][2]][0] + vec3[parsed[j][4]][0];
+                vec3[parsed[j][1]][1] = vec3[parsed[j][2]][1] + vec3[parsed[j][4]][1];
+                vec3[parsed[j][1]][2] = vec3[parsed[j][2]][2] + vec3[parsed[j][4]][2];
 
                 break;
 
             case 1:
-                valsA[0] -= valsB[0];
-                valsA[1] -= valsB[1];
-                valsA[2] -= valsB[2];
+                vec3[parsed[j][1]][0] = vec3[parsed[j][2]][0] - vec3[parsed[j][4]][0];
+                vec3[parsed[j][1]][1] = vec3[parsed[j][2]][1] - vec3[parsed[j][4]][1];
+                vec3[parsed[j][1]][2] = vec3[parsed[j][2]][2] - vec3[parsed[j][4]][2];
 
                 break;
 
             case 2:
-                valsA[0] = valsA[0] * valsB[0];
-                valsA[1] = valsA[1] * valsB[1];
-                valsA[2] = valsA[2] * valsB[2];
+                vec3[parsed[j][1]][0] = vec3[parsed[j][2]][0] * vec3[parsed[j][4]][0];
+                vec3[parsed[j][1]][1] = vec3[parsed[j][2]][1] * vec3[parsed[j][4]][1];
+                vec3[parsed[j][1]][2] = vec3[parsed[j][2]][2] * vec3[parsed[j][4]][2];
 
                 break;
 
             case 3:
-                valsA[0] = valsA[0] / valsB[0];
-                valsA[1] = valsA[1] / valsB[1];
-                valsA[2] = valsA[2] / valsB[2];
+                vec3[parsed[j][1]][0] = vec3[parsed[j][2]][0] / vec3[parsed[j][4]][0];
+                vec3[parsed[j][1]][1] = vec3[parsed[j][2]][1] / vec3[parsed[j][4]][1];
+                vec3[parsed[j][1]][2] = vec3[parsed[j][2]][2] / vec3[parsed[j][4]][2];
 
                 break;
         }
 
-        vectors3[parsed[j][1]] = new Vec3(valsA[0], valsA[1], valsA[2]);
     }
 
     private void arithmetics2(int j) {
-        Vec2 vecA = vectors2[parsed[j][2]];
-        Vec2 vecB = vectors2[parsed[j][4]];
-
-        float[] valsA = new float[]{
-                vecA.x, vecA.y
-        };
-
-        float[] valsB = new float[]{
-                vecB.x, vecB.y
-        };
-
         switch (parsed[j][3]) {
             case 0:
-                valsA[0] += valsB[0];
-                valsA[1] += valsB[1];
+                vec2[parsed[j][1]][0] = vec2[parsed[j][2]][0] + vec2[parsed[j][4]][0];
+                vec2[parsed[j][1]][1] = vec2[parsed[j][2]][1] + vec2[parsed[j][4]][1];
 
                 break;
 
             case 1:
-                valsA[0] -= valsB[0];
-                valsA[1] -= valsB[1];
+                vec2[parsed[j][1]][0] = vec2[parsed[j][2]][0] - vec2[parsed[j][4]][0];
+                vec2[parsed[j][1]][1] = vec2[parsed[j][2]][1] - vec2[parsed[j][4]][1];
 
                 break;
 
             case 2:
-                valsA[0] = valsA[0] * valsB[0];
-                valsA[1] = valsA[1] * valsB[1];
+                vec2[parsed[j][1]][0] = vec2[parsed[j][2]][0] * vec2[parsed[j][4]][0];
+                vec2[parsed[j][1]][1] = vec2[parsed[j][2]][1] * vec2[parsed[j][4]][1];
 
                 break;
 
             case 3:
-                valsA[0] = valsA[0] / valsB[0];
-                valsA[1] = valsA[1] / valsB[1];
+                vec2[parsed[j][1]][0] = vec2[parsed[j][2]][0] / vec2[parsed[j][4]][0];
+                vec2[parsed[j][1]][1] = vec2[parsed[j][2]][1] / vec2[parsed[j][4]][1];
 
                 break;
         }
-
-        vectors2[parsed[j][1]] = new Vec2(valsA[0], valsA[1]);
     }
 
     private void unbranched() {
@@ -365,7 +274,8 @@ public class ShaderThread extends Thread {
 
             Vec2 uv = mainTexture.getUv(xCoord, yCoord);
 
-            vectors2[0] = uv;
+            vec2[0][0] = uv.x;
+            vec2[0][1] = uv.y;
 
             this.pointer = parsed.length - 1;
 
@@ -373,16 +283,18 @@ public class ShaderThread extends Thread {
                 int logic = handleLogic(j);
 
                 if (logic == -1) {
-                    Vec3 value = textures[parsed[j][2]].getRgb(vectors2[parsed[j][3]]);
+                    Vec3 value = textures[parsed[j][2]].getRgb(vec2[parsed[j][3]]);
                     value = VecUtils.rgbToCol(value);
 
-                    vectors3[parsed[j][1]] = value;
+                    vec3[parsed[j][1]][0] = value.x;
+                    vec3[parsed[j][1]][1] = value.y;
+                    vec3[parsed[j][1]][2] = value.z;
                 } else {
                     j = logic;
                 }
             }
 
-            mainTexture.setRgbTex(vectors3[outputVector], new Vec2(xCoord, yCoord));
+            mainTexture.setRgbTex(vec3[outputVector], new Vec2(xCoord, yCoord));
         }
     }
 }

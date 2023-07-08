@@ -182,17 +182,17 @@ public class JPSLProgram {
                 case "vec2": {
                     vec2Names.add(content[1]);
 
-//                    if (content[3].startsWith("vec2")) {
-                    String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
+                    if (content[3].startsWith("vec2")) {
+                        String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
 
-                    args[0] = 3;
-                    args[1] = vec2Names.indexOf(content[1]);
-                    args[2] = (int) (Double.parseDouble(inside[0]) * 10000f);
-                    args[3] = (int) (Double.parseDouble(inside[1]) * 10000f);
+                        args[0] = 3;
+                        args[1] = vec2Names.indexOf(content[1]);
+                        args[2] = (int) (Double.parseDouble(inside[0]) * 10000f);
+                        args[3] = (int) (Double.parseDouble(inside[1]) * 10000f);
 
-                    vectors2.put(content[1], new Vec2(0, 0));
-                    done = true;
-//                    }
+                        vectors2.put(content[1], new Vec2(0, 0));
+                        done = true;
+                    }
 
                     break;
                 }

@@ -11,23 +11,29 @@ public class VecUtils {
         return new Vec2(uvX, uvY);
     }
 
-    public static Vec2 uvToTex(Vec2 uv, int width, int height) {
-        float texX = uv.x * (width + .0f);
-        float texY = uv.y * (height + .0f);
-
-        return new Vec2(texX, texY);
+    public static float[] uvToTex(float[] uv, int width, int height) {
+        return new float[] {
+                uv[0] * width,
+                uv[1] * height
+        };
     }
 
-    public static Vec3 colToRGB(Vec3 col) {
-        float r = col.x * 255;
-        float g = col.y * 255;
-        float b = col.z * 255;
+    public static float[] colToRGB(float[] vec) {
+        float[] col = new float[] {
+                vec[0],
+                vec[1],
+                vec[2]
+        };
 
-        int red = Math.max(0, Math.min(255, (int) r));
-        int green = Math.max(0, Math.min(255, (int) g));
-        int blue = Math.max(0, Math.min(255, (int) b));
+        col[0] *= 255;
+        col[1] *= 255;
+        col[2] *= 255;
 
-        return new Vec3(red, green, blue);
+        col[0] = (int) Math.max(0, Math.min(255, col[0]));
+        col[1] = (int) Math.max(0, Math.min(255, col[1]));
+        col[2] = (int) Math.max(0, Math.min(255, col[2]));
+
+        return col;
     }
 
     public static Vec3 rgbToCol(Vec3 rgb) {

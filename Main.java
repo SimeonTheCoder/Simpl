@@ -10,12 +10,12 @@ public class Main {
         HashMap<String, Vec2> args2 = new HashMap<>();
         HashMap<String, Vec3> args3 = new HashMap<>();
 
-        boolean display = false;
+        boolean display = true;
 
         String out = null;
-        String path = null;
+        String path = "test.jpsl";
 
-        int threadCount = 1;
+        int threadCount = 8;
 
         for (String arg : args) {
             if(arg.equals("-d")) display = true;

@@ -24,27 +24,27 @@ public class Texture {
         }
     }
 
-    public void setRgbTex(Vec3 vec, Vec2 tex) {
-        Vec3 realColor = VecUtils.colToRGB(vec);
+    public void setRgbTex(float[] vec, Vec2 tex) {
+        float[] realColor = VecUtils.colToRGB(vec);
 
         tex.x = Math.max(0, Math.min(content[0].length, tex.x));
         tex.y = Math.max(0, Math.min(content.length, tex.y));
 
-        content[(int) tex.y][(int) tex.x][0] = (int) realColor.x;
-        content[(int) tex.y][(int) tex.x][1] = (int) realColor.y;
-        content[(int) tex.y][(int) tex.x][2] = (int) realColor.z;
+        content[(int) tex.y][(int) tex.x][0] = (int) realColor[0];
+        content[(int) tex.y][(int) tex.x][1] = (int) realColor[1];
+        content[(int) tex.y][(int) tex.x][2] = (int) realColor[2];
     }
 
-    public Vec3 getRgb(Vec2 uv) {
-        Vec2 realCoords = VecUtils.uvToTex(uv, content[0].length, content.length);
+    public Vec3 getRgb(float[] uv) {
+        float[] realCoords = VecUtils.uvToTex(uv, content[0].length, content.length);
 
-        realCoords.x = Math.max(0, Math.min(content[0].length-1, realCoords.x));
-        realCoords.y = Math.max(0, Math.min(content.length-1, realCoords.y));
+        realCoords[0] = Math.max(0, Math.min(content[0].length-1, realCoords[0]));
+        realCoords[1] = Math.max(0, Math.min(content.length-1, realCoords[1]));
 
         return new Vec3(
-                content[(int) realCoords.y][(int) realCoords.x][0],
-                content[(int) realCoords.y][(int) realCoords.x][1],
-                content[(int) realCoords.y][(int) realCoords.x][2]
+                content[(int) realCoords[1]][(int) realCoords[0]][0],
+                content[(int) realCoords[1]][(int) realCoords[0]][1],
+                content[(int) realCoords[1]][(int) realCoords[0]][2]
         );
     }
 
