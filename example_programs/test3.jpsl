@@ -6,24 +6,23 @@ __tex
 
 __main
 {
-    vec2 half = vec2(0.5,0.5)
-    vec3 one = vec3(1,1,1)
+    var half = [0.5,0.5]
+    var one = [1,1,1]
 
     --b
-    con (uv.x_<_half.x) if else
+    if (uv.x_<_half.x) if else
     _if
     {
-        vec3 col = vec3(0,0,0)
+        var col = [0,0,0]
 
         jmp c
     }
     _else
     {
-        vec3 col = vec3(1,1,1)
-
-        jmp c
+        var col = [1,1,1]
     }
-    _c
 
-    out col
+    return
 }
+
+out col

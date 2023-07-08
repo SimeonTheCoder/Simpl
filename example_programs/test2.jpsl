@@ -6,23 +6,24 @@ __tex
 
 __main
 {
-    vec3 one = vec3(1,1,1)
-    vec2 zero = vec2(0,0)
-    vec2 uvOffset = vec2(-0.001,0)
+    var one = [1,1,1]
+    var zero = [0,0]
+    var uvOffset = [-0.001,0]
 
-    vec3 times = vec3(20,20,20)
-    vec3 multiplier = vec3(0,0,0)
+    var times = [20,20,20]
+    var multiplier = [0,0,0]
+
     multiplier = multiplier + times
 
     multiplier = one / multiplier
 
     --b
-    vec3 times = vec3(20,20,20)
-    vec3 result = vec3(0,0,0)
+    var times = [20,20,20]
+    var result = [0,0,0]
 
     _cycle
     {
-        vec3 col = sample(texture,uv)
+        var col = sample(texture,uv)
         col = col * multiplier
 
         result = result + col
@@ -31,14 +32,12 @@ __main
 
         times = times - one
 
-        con (times.x_!=_zero.x) cycle out
+        if (times.x_!=_zero.x) cycle out
         _out
         {
-            jmp end
+            return
         }
     }
-
-    _end
-
-    out result
 }
+
+out result

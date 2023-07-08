@@ -10,10 +10,10 @@ public class Main {
         HashMap<String, Vec2> args2 = new HashMap<>();
         HashMap<String, Vec3> args3 = new HashMap<>();
 
-        boolean display = true;
+        boolean display = false;
 
         String out = null;
-        String path = "test.jpsl";
+        String path = null;
 
         int threadCount = 8;
 
