@@ -26,7 +26,7 @@ public class JPSLProgram {
     private String outFile;
 
     private List<String> textureNames;
-    private List<Texture> textures;
+    private Texture[] textures;
     private HashMap<String, Vec3> vectors3;
     private HashMap<String, Vec2> vectors2;
 
@@ -42,7 +42,7 @@ public class JPSLProgram {
     private boolean display;
 
     public JPSLProgram(String filename, HashMap<String, Vec2> args2, HashMap<String, Vec3> args3, boolean display, String out, int THREAD_COUNT) {
-        textures = new ArrayList<>();
+        textures = new Texture[32];
         textureNames = new ArrayList<>();
 
         vectors3 = new HashMap<>();
@@ -66,7 +66,7 @@ public class JPSLProgram {
 
         this.outFile = out;
 
-        this.THREAD_COUNT = THREAD_COUNT;
+        JPSLProgram.THREAD_COUNT = THREAD_COUNT;
     }
 
     public List<int[]> parse() {
@@ -95,6 +95,8 @@ public class JPSLProgram {
             vec2Names.add(stringVec2Entry.getKey());
         }
 
+        int textureId = 0;
+
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             line = line.trim();
@@ -103,27 +105,24 @@ public class JPSLProgram {
 
             String[] content = line.split(" ");
 
-            switch (content[0]) {
-                case "tex": {
-                    try {
-                        Texture texture = new Texture(ImageIO.read(new File(content[3])));
+            if (content[0].equals("tex")) {
+                try {
+                    Texture texture = new Texture(ImageIO.read(new File(content[3])));
 
-                        if (textureNames.contains(content[1])) {
-                            textures.set(textureNames.indexOf(content[1]), texture);
-                        } else {
-                            textures.add(texture);
-                        }
-
-                        textureNames.add(content[1]);
-
-                        if (content.length == 5) {
-                            mainTexture = texture;
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    if (textureNames.contains(content[1])) {
+                        textures[textureNames.indexOf(content[1])] = texture;
+                    } else {
+                        textures[textureId] = texture;
+                        textureId++;
                     }
 
-                    break;
+                    textureNames.add(content[1]);
+
+                    if (content.length == 5) {
+                        mainTexture = texture;
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -139,7 +138,7 @@ public class JPSLProgram {
                 break;
             }
 
-            int[] args = new int[11];
+            int[] args = new int[10];
             boolean done = false;
 
             switch (content[0]) {
@@ -183,17 +182,17 @@ public class JPSLProgram {
                 case "vec2": {
                     vec2Names.add(content[1]);
 
-                    if (content[3].startsWith("vec2")) {
-                        String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
+//                    if (content[3].startsWith("vec2")) {
+                    String[] inside = content[3].split("\\(")[1].split("\\)")[0].split(",");
 
-                        args[0] = 3;
-                        args[1] = vec2Names.indexOf(content[1]);
-                        args[2] = (int) (Double.parseDouble(inside[0]) * 10000f);
-                        args[3] = (int) (Double.parseDouble(inside[1]) * 10000f);
+                    args[0] = 3;
+                    args[1] = vec2Names.indexOf(content[1]);
+                    args[2] = (int) (Double.parseDouble(inside[0]) * 10000f);
+                    args[3] = (int) (Double.parseDouble(inside[1]) * 10000f);
 
-                        vectors2.put(content[1], new Vec2(0, 0));
-                        done = true;
-                    }
+                    vectors2.put(content[1], new Vec2(0, 0));
+                    done = true;
+//                    }
 
                     break;
                 }
@@ -400,7 +399,7 @@ public class JPSLProgram {
                 }
             }
 
-            if(done) parsed.add(args);
+            if (done) parsed.add(args);
         }
 
         this.vec2Names = vec2Names;
@@ -411,44 +410,35 @@ public class JPSLProgram {
 
     public void runThreaded(List<int[]> parsed) {
         if (display) {
-            ImgDisplay display = new ImgDisplay(mainTexture.content, 1600, 900);
+            new ImgDisplay(mainTexture.content, 1600, 900);
         }
 
         int MAIN_WIDTH = mainTexture.content[0].length;
         int MAIN_HEIGHT = mainTexture.content.length;
 
-        List<String> lines = new ArrayList<>();
+        int[][] posX = new int[THREAD_COUNT][mainTexture.content.length * mainTexture.content[0].length / THREAD_COUNT + 10];
+        int[][] posY = new int[THREAD_COUNT][mainTexture.content.length * mainTexture.content[0].length / THREAD_COUNT + 10];
 
-        List<List<Integer>> posX = new ArrayList<>();
-        List<List<Integer>> posY = new ArrayList<>();
+        int[] bucketCounts = new int[THREAD_COUNT];
 
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            posX.add(new ArrayList<>());
-            posY.add(new ArrayList<>());
-        }
+        int[][] parsedArr = new int[parsed.size()][11];
 
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-
-            lines.add(line);
+        for (int j = 0; j < parsed.size(); j++) {
+            parsedArr[j] = parsed.get(j);
         }
 
         for (int yCoord = 0; yCoord < MAIN_HEIGHT; yCoord++) {
             for (int xCoord = 0; xCoord < MAIN_WIDTH; xCoord++) {
                 int bucket = (yCoord * MAIN_HEIGHT + xCoord) % THREAD_COUNT;
 
-                posX.get(bucket).add(xCoord);
-                posY.get(bucket).add(yCoord);
+                posX[bucket][bucketCounts[bucket]] = xCoord;
+                posY[bucket][bucketCounts[bucket]] = yCoord;
+
+                bucketCounts[bucket]++;
             }
         }
 
-        List<ShaderThread> threads = new ArrayList<>();
-
-        Texture[] texturesArray = new Texture[textureNames.size()];
-
-        for (int j = 0; j < textures.size(); j++) {
-            texturesArray[j] = textures.get(j);
-        }
+        ShaderThread[] threads = new ShaderThread[THREAD_COUNT];
 
         int[] labelPointers = new int[labelNames.size()];
 
@@ -457,36 +447,19 @@ public class JPSLProgram {
         }
 
         for (int i = 0; i < THREAD_COUNT; i++) {
-            int[] coords = new int[posX.get(i).size()];
-
-            for (int j = 0; j < posX.get(i).size(); j++) {
-                int currX = posX.get(i).get(j);
-                int currY = posY.get(i).get(j);
-
-                int curr = currX + currY * mainTexture.content[0].length;
-
-                coords[j] = curr;
-            }
-
-            ShaderThread thread = new ShaderThread(coords, mainTexture, texturesArray, vec3Names, vec2Names, labelPointers);
-
-            int[][] parsedArr = new int[parsed.size()][11];
-
-            for (int j = 0; j < parsed.size(); j++) {
-                parsedArr[j] = parsed.get(j);
-            }
+            ShaderThread thread = new ShaderThread(posX[i], posY[i], mainTexture, textures, labelPointers, vec2Names.size(), vec3Names.size());
 
             thread.parsed = parsedArr;
 
             thread.mainTexture = this.mainTexture;
-            thread.outputVector = this.outputVector;
+            thread.outputVector = this.vec3Names.indexOf(outputVector);
 
             thread.args2 = this.args2;
             thread.args3 = this.args3;
 
             thread.start();
 
-            threads.add(thread);
+            threads[i] = thread;
         }
 
         boolean done;
@@ -503,9 +476,9 @@ public class JPSLProgram {
             File file = new File(outFile);
 
             BufferedImage result = new BufferedImage(mainTexture.content[0].length, mainTexture.content.length, BufferedImage.TYPE_INT_RGB);
-            
-            for(int i = 0; i < mainTexture.content.length; i ++) {
-                for(int j = 0; j < mainTexture.content[0].length; j ++) {
+
+            for (int i = 0; i < mainTexture.content.length; i++) {
+                for (int j = 0; j < mainTexture.content[0].length; j++) {
                     result.setRGB(j, i, new Color(
                             mainTexture.content[i][j][0],
                             mainTexture.content[i][j][1],

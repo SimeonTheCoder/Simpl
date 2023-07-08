@@ -6,7 +6,6 @@ import data.Vec3;
 import utils.VecUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ShaderThread extends Thread {
@@ -15,10 +14,8 @@ public class ShaderThread extends Thread {
     public HashMap<String, Vec2> args2;
     public HashMap<String, Vec3> args3;
 
-    private int[] coords;
-
-    private List<String> vec3Names;
-    private List<String> vec2Names;
+    private int[] coordsX;
+    private int[] coordsY;
 
     private int vec2Count;
     private int vec3Count;
@@ -40,11 +37,11 @@ public class ShaderThread extends Thread {
     private int pointer;
     private int reached;
 
-    public String outputVector;
+    public int outputVector;
 
-    public ShaderThread(int[] coords, Texture mainTexture, Texture[] textures,
-                        List<String> vec3Names, List<String> vec2Names, int[] labels) {
-        this.coords = coords;
+    public ShaderThread(int[] coordsX, int[] coordsY, Texture mainTexture, Texture[] textures, int[] labels, int vec2Count, int vec3Count) {
+        this.coordsX = coordsX;
+        this.coordsY = coordsY;
 
         this.mainTexture = mainTexture;
         this.textures = textures;
@@ -52,11 +49,8 @@ public class ShaderThread extends Thread {
         vectors3 = new Vec3[256];
         vectors2 = new Vec2[256];
 
-        this.vec2Names = vec2Names;
-        this.vec3Names = vec3Names;
-
-        this.vec2Count = this.vec2Names.size();
-        this.vec3Count = this.vec3Names.size();
+        this.vec2Count = vec2Count;
+        this.vec3Count = vec3Count;
 
         this.labels = labels;
 
@@ -275,7 +269,7 @@ public class ShaderThread extends Thread {
         Vec3 vecB = vectors3[parsed[j][4]];
 
         float[] valsA = new float[]{
-            vecA.x, vecA.y, vecA.z
+                vecA.x, vecA.y, vecA.z
         };
 
         float[] valsB = new float[]{
@@ -360,14 +354,14 @@ public class ShaderThread extends Thread {
         for (int j = this.reached; j < parsed.length; j++) {
             handleLogic(j);
 
-            if (reached != -1) break;
+            if (reached != 0) break;
         }
     }
 
     private void branched() {
-        for (int i = 0; i < coords.length; i++) {
-            int xCoord = coords[i] % width;
-            int yCoord = coords[i] / width;
+        for (int i = 0; i < coordsX.length; i++) {
+            int xCoord = coordsX[i];
+            int yCoord = coordsY[i];
 
             Vec2 uv = mainTexture.getUv(xCoord, yCoord);
 
@@ -388,7 +382,7 @@ public class ShaderThread extends Thread {
                 }
             }
 
-            mainTexture.setRgbTex(vectors3[vec3Names.indexOf(outputVector)], new Vec2(xCoord, yCoord));
+            mainTexture.setRgbTex(vectors3[outputVector], new Vec2(xCoord, yCoord));
         }
     }
 }

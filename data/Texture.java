@@ -24,18 +24,6 @@ public class Texture {
         }
     }
 
-    public void setRgb(Vec3 vec, Vec2 uv) {
-        Vec2 texCoords = VecUtils.uvToTex(uv, content[0].length, content.length);
-        Vec3 realColor = VecUtils.colToRGB(vec);
-
-        uv.x = Math.max(0, Math.min(1, uv.x));
-        uv.y = Math.max(0, Math.min(1, uv.y));
-
-        content[(int) texCoords.y][(int) texCoords.x][0] = (int) realColor.x;
-        content[(int) texCoords.y][(int) texCoords.x][1] = (int) realColor.y;
-        content[(int) texCoords.y][(int) texCoords.x][2] = (int) realColor.z;
-    }
-
     public void setRgbTex(Vec3 vec, Vec2 tex) {
         Vec3 realColor = VecUtils.colToRGB(vec);
 
