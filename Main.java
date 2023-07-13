@@ -1,6 +1,6 @@
 import data.Vec2;
 import data.Vec3;
-import parser.JPSLProgram;
+import parser.SimplProgram;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +52,7 @@ public class Main {
             }
         }
 
-        JPSLProgram parser = new JPSLProgram(path, args2, args3, display, out, threadCount);
+        SimplProgram parser = new SimplProgram(path, args2, args3, display, out, threadCount);
 
         List<int[]> parsed = parser.parse();
 

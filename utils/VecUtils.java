@@ -36,15 +36,11 @@ public class VecUtils {
         return col;
     }
 
-    public static Vec3 rgbToCol(Vec3 rgb) {
-        int r = (int) rgb.x;
-        int g = (int) rgb.y;
-        int b = (int) rgb.z;
-
-        float red = r / 255f;
-        float green = g / 255f;
-        float blue = b / 255f;
-
-        return new Vec3(red, green, blue);
+    public static float[] rgbToCol(float[] rgb) {
+        return new float[] {
+                rgb[0] / 255f,
+                rgb[1] / 255f,
+                rgb[2] / 255f
+        };
     }
 }

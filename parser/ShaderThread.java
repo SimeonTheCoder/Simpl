@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShaderThread extends Thread {
+    public int PARSED_SIZE;
+
     public int[][] parsed;
 
     public HashMap<String, Vec2> args2;
@@ -34,7 +36,10 @@ public class ShaderThread extends Thread {
 
     public int outputVector;
 
-    public ShaderThread(int[] coordsX, int[] coordsY, Texture mainTexture, Texture[] textures, int[] labels, int vecCount) {
+    public ShaderThread(int[][] parsed, int[] coordsX, int[] coordsY, Texture mainTexture, Texture[] textures, int[] labels, int vecCount) {
+        this.parsed = parsed;
+        this.PARSED_SIZE = parsed.length;
+
         this.coordsX = coordsX;
         this.coordsY = coordsY;
 
@@ -52,7 +57,7 @@ public class ShaderThread extends Thread {
 
     @Override
     public void run() {
-        this.pointer = parsed.length - 1;
+        this.pointer = PARSED_SIZE - 1;
         this.reached = 0;
 
         vec[0][0] = 0;
@@ -88,12 +93,13 @@ public class ShaderThread extends Thread {
         switch (parsed[j][0]) {
             case 0: {
                 j = this.pointer;
-                this.pointer = parsed.length - 1;
+                this.pointer = PARSED_SIZE - 1;
                 break;
             }
 
             case 1: {
-                return -1;
+                j = -1;
+                break;
             }
 
             case 2: {
@@ -123,9 +129,7 @@ public class ShaderThread extends Thread {
             }
 
             case 7: {
-                if (parsed[j][1] < vecCount) {
-                    arithmetics3(j);
-                }
+                arithmetics3(j);
 
                 break;
             }
@@ -140,40 +144,33 @@ public class ShaderThread extends Thread {
     }
 
     private boolean boolOperations(float valA, float valB, int operator) {
+        boolean res = false;
+
         switch (operator) {
-            case 0:
-                return valA > valB;
             case 1:
-                return valA < valB;
+                res = valA > valB;
+                break;
+
+            case 0:
+                res = valA < valB;
+                break;
+
+            case -1:
+                res = valA == valB;
+                break;
+
             case 2:
-                return valA == valB;
-            case 3:
-                return valA >= valB;
-            case 4:
-                return valA <= valB;
-            case 5:
-                return valA != valB;
+                res = valA != valB;
+                break;
         }
 
-        return false;
+        return res;
     }
 
     private int handleIf(int j) {
-        float valA = 0;
-        float valB = 0;
+        boolean res = boolOperations(vec[parsed[j][2]][parsed[j][3]], vec[parsed[j][4]][parsed[j][5]], parsed[j][6]);
 
-        valA = vec[parsed[j][6]][parsed[j][7]];
-        valB = vec[parsed[j][8]][parsed[j][9]];
-
-        boolean result = boolOperations(valA, valB, parsed[j][5]);
-
-        if (result) {
-            j = labels[parsed[j][3]];
-        } else {
-            j = labels[parsed[j][4]];
-        }
-
-        return j;
+        return res ? labels[parsed[j][7]] : labels[parsed[j][8]];
     }
 
     private void arithmetics3(int j) {
@@ -206,16 +203,10 @@ public class ShaderThread extends Thread {
 
                 break;
         }
-
-        if(parsed[j][5] == 1) {
-            vec[parsed[j][1]][0] = Math.max(0, Math.min(1, vec[parsed[j][1]][0]));
-            vec[parsed[j][1]][1] = Math.max(0, Math.min(1, vec[parsed[j][1]][1]));
-            vec[parsed[j][1]][2] = Math.max(0, Math.min(1, vec[parsed[j][1]][2]));
-        }
     }
 
     private void unbranched() {
-        for (int j = this.reached; j < parsed.length; j++) {
+        for (int j = this.reached; j < PARSED_SIZE; j++) {
             handleLogic(j);
 
             if (reached != 0) break;
@@ -223,7 +214,9 @@ public class ShaderThread extends Thread {
     }
 
     private void branched() {
-        for (int i = 0; i < coordsX.length; i++) {
+        int l = coordsX.length;
+
+        for (int i = 0; i < l; i++) {
             int xCoord = coordsX[i];
             int yCoord = coordsY[i];
 
@@ -232,18 +225,18 @@ public class ShaderThread extends Thread {
             vec[0][0] = uv.x;
             vec[0][1] = uv.y;
 
-            this.pointer = parsed.length - 1;
+            this.pointer = PARSED_SIZE - 1;
 
-            for (int j = this.reached; j < parsed.length; j++) {
+            for (int j = this.reached; j < PARSED_SIZE; j++) {
                 int logic = handleLogic(j);
 
                 if (logic == -1) {
-                    Vec3 value = textures[parsed[j][2]].getRgb(vec[parsed[j][3]]);
-                    value = VecUtils.rgbToCol(value);
+                    int x = (int) Math.max(0, Math.min(textures[parsed[j][2]].WIDTH - 1, vec[0][0] * textures[parsed[j][2]].WIDTH));
+                    int y = (int) Math.max(0, Math.min(textures[parsed[j][2]].HEIGHT - 1, vec[0][1] * textures[parsed[j][2]].HEIGHT));
 
-                    vec[parsed[j][1]][0] = value.x;
-                    vec[parsed[j][1]][1] = value.y;
-                    vec[parsed[j][1]][2] = value.z;
+                    vec[parsed[j][1]][0] = textures[parsed[j][2]].content[y][x][0] / 255f;
+                    vec[parsed[j][1]][1] = textures[parsed[j][2]].content[y][x][1] / 255f;
+                    vec[parsed[j][1]][2] = textures[parsed[j][2]].content[y][x][2] / 255f;
                 } else {
                     j = logic;
                 }

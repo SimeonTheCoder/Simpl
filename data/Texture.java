@@ -6,16 +6,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class Texture {
-    public int[][][] content;
+    public final int[][][] content;
+    
+    public final int WIDTH;
+    public final int HEIGHT;
 
     public Texture(BufferedImage content) {
-        BufferedImage img = content;
+        this.content = new int[content.getHeight()][content.getWidth()][3];
+        
+        this.WIDTH = content.getWidth();
+        this.HEIGHT = content.getWidth();
 
-        this.content = new int[img.getHeight()][img.getWidth()][3];
-
-        for(int i = 0; i < img.getHeight(); i ++) {
-            for(int j = 0; j < img.getWidth(); j ++) {
-                Color col = new Color(img.getRGB(j, i));
+        for (int i = 0; i < content.getHeight(); i++) {
+            for (int j = 0; j < content.getWidth(); j++) {
+                Color col = new Color(content.getRGB(j, i));
 
                 this.content[i][j][0] = col.getRed();
                 this.content[i][j][1] = col.getGreen();
@@ -27,28 +31,26 @@ public class Texture {
     public void setRgbTex(float[] vec, Vec2 tex) {
         float[] realColor = VecUtils.colToRGB(vec);
 
-        tex.x = Math.max(0, Math.min(content[0].length, tex.x));
-        tex.y = Math.max(0, Math.min(content.length, tex.y));
+        int y = (int) tex.y;
+        int x = (int) tex.x;
 
-        content[(int) tex.y][(int) tex.x][0] = (int) realColor[0];
-        content[(int) tex.y][(int) tex.x][1] = (int) realColor[1];
-        content[(int) tex.y][(int) tex.x][2] = (int) realColor[2];
+        content[y][x][0] = (int) realColor[0];
+        content[y][x][1] = (int) realColor[1];
+        content[y][x][2] = (int) realColor[2];
     }
 
-    public Vec3 getRgb(float[] uv) {
-        float[] realCoords = VecUtils.uvToTex(uv, content[0].length, content.length);
+    public float[] getRgb(float xUv, float yUv) {
+        int x = (int) Math.max(0, Math.min(WIDTH - 1, xUv * WIDTH));
+        int y = (int) Math.max(0, Math.min(HEIGHT - 1, yUv * HEIGHT));
 
-        realCoords[0] = Math.max(0, Math.min(content[0].length-1, realCoords[0]));
-        realCoords[1] = Math.max(0, Math.min(content.length-1, realCoords[1]));
-
-        return new Vec3(
-                content[(int) realCoords[1]][(int) realCoords[0]][0],
-                content[(int) realCoords[1]][(int) realCoords[0]][1],
-                content[(int) realCoords[1]][(int) realCoords[0]][2]
-        );
+        return new float[]{
+                content[y][x][0],
+                content[y][x][1],
+                content[y][x][2]
+        };
     }
 
     public Vec2 getUv(int x, int y) {
-        return VecUtils.texToUV(new Vec2(x, y), content[0].length, content.length);
+        return VecUtils.texToUV(new Vec2(x, y), WIDTH, HEIGHT);
     }
 }
