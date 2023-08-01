@@ -1,5 +1,6 @@
 # Simpl
 A brand new dynamically typed prcoessor shader programming language with no additional overhead from using If-statements and loops.
+![Before vs After, Simpl](https://github.com/SimeonTheCoder/Simpl/blob/main/SIMPL_DEMO.jpg)
 I created Simpl with the idea of an easily integratable shader language, that can be easily called from many programming languages and without the need for a graphics library and running on a CPU.
 To use it, call it trough command prompt:
 java -jar simpl.jar -p(your_program.smpl) -a3(var_name,var_x,var_y,var_z) -o(output_picture.extension) -d  -t8
