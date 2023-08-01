@@ -1,6 +1,6 @@
 __tex
 {
-    tex texture2 = texture2.jpg _out
+    tex texture2 = texture.jpg _out
     tex texture = texture.jpg
 }
 

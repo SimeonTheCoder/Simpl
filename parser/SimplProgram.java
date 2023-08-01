@@ -136,7 +136,8 @@ public class SimplProgram {
                 break;
             }
 
-            int[] args = new int[10];
+            int[] args = new int[6];
+
             boolean done = false;
 
             switch (content[0]) {
@@ -202,10 +203,8 @@ public class SimplProgram {
                         labels.add(0);
                     }
 
-                    args[7] = labelNames.indexOf(content[2]);
-                    args[8] = labelNames.indexOf(content[3]);
-
-                    args[2] = vecNames.indexOf(varA);
+                    args[4] = labelNames.indexOf(content[2]);
+                    args[5] = labelNames.indexOf(content[3]);
 
                     String charA = content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[1];
 
@@ -225,8 +224,7 @@ public class SimplProgram {
                             break;
                     }
 
-                    args[3] = argA;
-                    args[4] = vecNames.indexOf(varB);
+                    args[1] = vecNames.indexOf(varA) * 3 + argA;
 
                     String charB = content[1].split("\\(")[1].split("\\)")[0].split("_")[0].split("\\.")[1];
 
@@ -246,7 +244,7 @@ public class SimplProgram {
                             break;
                     }
 
-                    args[5] = argB;
+                    args[2] = vecNames.indexOf(varB) * 3 + argB;
 
                     String sign = content[1].split("\\(")[1].split("\\)")[0].split("_")[1];
 
@@ -267,7 +265,7 @@ public class SimplProgram {
                             break;
                     }
 
-                    args[6] = signIndex;
+                    args[3] = signIndex;
 
                     done = true;
 
@@ -334,6 +332,10 @@ public class SimplProgram {
 
                             case "/":
                                 signIndex = 3;
+                                break;
+
+                            case "^":
+                                signIndex = 4;
                                 break;
                         }
 
@@ -405,7 +407,7 @@ public class SimplProgram {
     }
 
     private int[][] parsedToArr(List<int[]> parsed) {
-        int[][] parsedArr = new int[parsed.size()][11];
+        int[][] parsedArr = new int[parsed.size()][6];
 
         for (int j = 0; j < parsed.size(); j++) {
             parsedArr[j] = parsed.get(j);
