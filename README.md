@@ -87,7 +87,7 @@ _cycle
 }
 _outcycle
 ```
-Functions
+## Functions
 The functions behave like pieces of code that we jump to and then return to __main. This is he syntax for functions:
 ```
 __func
